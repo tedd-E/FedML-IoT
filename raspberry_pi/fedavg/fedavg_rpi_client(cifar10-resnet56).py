@@ -51,6 +51,9 @@ def register(args, uuid):
 
     class Args:
         def __init__(self):
+        
+            self.client_num_in_total = training_task_args['client_num_in_total']
+        
             self.dataset = training_task_args['dataset']
             self.data_dir = training_task_args['data_dir']
             self.partition_method = training_task_args['partition_method']
@@ -127,8 +130,8 @@ def load_data(args, dataset_name):
 def create_model(args, model_name, output_dim):
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
     model = None
-    if model_name == "lr" and args.dataset == "mnist":
-        model = LogisticRegression(28 * 28, output_dim)
+    if model_name == "lr" and args.dataset == "cifar10":
+        model = LogisticRegression(28 * 28, output_dim)      #Dim?
         args.client_optimizer = "sgd"
     elif model_name == "rnn" and args.dataset == "shakespeare":
         model = RNN_OriginalFedAvg(28 * 28, output_dim)
@@ -179,9 +182,10 @@ if __name__ == '__main__':
     model_trainer.set_id(client_index)
 
     # start training
-    trainer = FedAVGTrainer(client_index, train_data_local_dict, train_data_local_num_dict, test_data_local_dict,
-                            train_data_num, device, args, model_trainer)
-
+    trainer = FedAVGTrainer(client_index, train_data_local_dict, train_data_local_num_dict, test_data_local_dict, train_data_num, device,
+                            args, model_trainer)
+    
+    
     size = args.client_num_per_round + 1
     client_manager = FedAVGClientManager(args, trainer, rank=client_ID, size=size, backend="MQTT")
     client_manager.run()
