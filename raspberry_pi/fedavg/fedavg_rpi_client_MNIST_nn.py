@@ -141,10 +141,19 @@ if __name__ == '__main__':
     logging.info("client_ID = %d, size = %d" % (client_ID, args.client_num_per_round))
     device = init_training_device(client_ID - 1, args.client_num_per_round - 1, 4)
 
+
     # load data
     dataset = load_data(args, args.dataset)
     [train_data_num, test_data_num, train_data_global, test_data_global,
      train_data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num] = dataset
+
+
+    print("+++++++++++++++++++++++++")
+    print(args.batch_size)
+    print("+++++++++++++++++++++++++")
+
+
+
 
     # create model.
     # Note if the model is DNN (e.g., ResNet), the training will be very slow.
