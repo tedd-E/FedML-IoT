@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import argparse
 import logging
 import os
@@ -18,10 +16,8 @@ import torch
 import wandb
 # add the FedML root directory to the python path
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "./../../../../")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "./../../../../fedml_api/")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../")))
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "")))
 from fedml_api.data_preprocessing.FederatedEMNIST.data_loader import load_partition_data_federated_emnist
 from fedml_api.data_preprocessing.fed_cifar100.data_loader import load_partition_data_federated_cifar100
 from fedml_api.data_preprocessing.fed_shakespeare.data_loader import load_partition_data_federated_shakespeare
@@ -108,9 +104,6 @@ def add_args(parser):
 
     parser.add_argument('--ci', type=int, default=0,
                         help='CI')
-
-    parser.add_argument('--backend', type=str, default="MPI",
-                        help='Server/client comm type')
 
     parser.add_argument('--gpu_util_file', type=str, default=None,
                         help='the gpu utilization for servers and clients')

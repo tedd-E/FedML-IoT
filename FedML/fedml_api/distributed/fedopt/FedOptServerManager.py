@@ -3,7 +3,7 @@ import os
 import sys
 
 from .message_define import MyMessage
-from .utils import transform_tensor_to_list, post_complete_message_to_sweep_process
+from .utils import transform_tensor_to_list
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../../FedML")))
@@ -16,14 +16,12 @@ except ImportError:
 
 
 class FedOptServerManager(ServerManager):
-    def __init__(self, args, aggregator, comm=None, rank=0, size=0, backend="MPI", is_preprocessed=False, preprocessed_client_lists=None):
+    def __init__(self, args, aggregator, comm=None, rank=0, size=0, backend="MPI"):
         super().__init__(args, comm, rank, size, backend)
         self.args = args
         self.aggregator = aggregator
         self.round_num = args.comm_round
         self.round_idx = 0
-        self.is_preprocessed = is_preprocessed
-        self.preprocessed_client_lists = preprocessed_client_lists
 
     def run(self):
         super().run()
@@ -50,27 +48,21 @@ class FedOptServerManager(ServerManager):
         logging.info("b_all_received = " + str(b_all_received))
         if b_all_received:
             global_model_params = self.aggregator.aggregate()
-            self.aggregator.test_on_server_for_all_clients(self.round_idx)
+            if self.args.dataset.startswith("stackoverflow") and self.round_idx < self.round_num - 1:
+                # because the testset of stackoverflow is large, we test on 10000 random samples
+                self.aggregator.test_on_random_test_samples(self.round_idx, sample_num = 10000)
+            else:
+                self.aggregator.test_on_all_clients(self.round_idx)
 
             # start the next round
             self.round_idx += 1
             if self.round_idx == self.round_num:
-                post_complete_message_to_sweep_process(self.args)
                 self.finish()
                 return
 
             # sampling clients
-            if self.is_preprocessed:
-                if self.preprocessed_client_lists is None:
-                    # sampling has already been done in data preprocessor
-                    client_indexes = [self.round_idx] * self.args.client_num_per_round
-                else:
-                    client_indexes = self.preprocessed_client_lists[self.round_idx]
-            else:
-                # # sampling clients
-                client_indexes = self.aggregator.client_sampling(self.round_idx, self.args.client_num_in_total,
-                                                                 self.args.client_num_per_round)
-            
+            client_indexes = self.aggregator.client_sampling(self.round_idx, self.args.client_num_in_total,
+                                                             self.args.client_num_per_round)
             print("size = %d" % self.size)
             if self.args.is_mobile == 1:
                 print("transform_tensor_to_list")

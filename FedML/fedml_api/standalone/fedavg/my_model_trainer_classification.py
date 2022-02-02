@@ -1,5 +1,3 @@
-import logging
-
 import torch
 from torch import nn
 
@@ -35,22 +33,24 @@ class MyModelTrainer(ModelTrainer):
             batch_loss = []
             for batch_idx, (x, labels) in enumerate(train_data):
                 x, labels = x.to(device), labels.to(device)
+                # logging.info("x.size = " + str(x.size()))
+                # logging.info("labels.size = " + str(labels.size()))
                 model.zero_grad()
                 log_probs = model(x)
                 loss = criterion(log_probs, labels)
                 loss.backward()
 
-                # Uncommet this following line to avoid nan loss
-                # torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
+                # to avoid nan loss
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
 
                 optimizer.step()
                 # logging.info('Update Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                #     epoch, (batch_idx + 1) * args.batch_size, len(train_data) * args.batch_size,
-                #            100. * (batch_idx + 1) / len(train_data), loss.item()))
+                #     epoch, (batch_idx + 1) * self.args.batch_size, len(self.local_training_data) * self.args.batch_size,
+                #            100. * (batch_idx + 1) / len(self.local_training_data), loss.item()))
                 batch_loss.append(loss.item())
             epoch_loss.append(sum(batch_loss) / len(batch_loss))
-            logging.info('Client Index = {}\tEpoch: {}\tLoss: {:.6f}'.format(
-                self.id, epoch, sum(epoch_loss) / len(epoch_loss)))
+            # logging.info('Client Index = {}\tEpoch: {}\tLoss: {:.6f}'.format(
+            #     self.client_idx, epoch, sum(epoch_loss) / len(epoch_loss)))
 
     def test(self, test_data, device, args):
         model = self.model
@@ -80,6 +80,3 @@ class MyModelTrainer(ModelTrainer):
                 metrics['test_loss'] += loss.item() * target.size(0)
                 metrics['test_total'] += target.size(0)
         return metrics
-
-    def test_on_the_server(self, train_data_local_dict, test_data_local_dict, device, args=None) -> bool:
-        return False

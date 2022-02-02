@@ -35,7 +35,6 @@ conda install numpy
 conda install h5py
 conda install setproctitle
 conda install networkx
-conda install tqdm
 pip install -r requirements.txt
 
 # install the dataset

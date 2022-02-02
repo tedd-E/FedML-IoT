@@ -39,6 +39,7 @@ class MyModelTrainer(ModelTrainer):
                 log_probs = model(x)
                 loss = criterion(log_probs, labels)
                 loss.backward()
+
                 # to avoid nan loss
                 # torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
 
@@ -62,7 +63,8 @@ class MyModelTrainer(ModelTrainer):
             'test_loss': 0,
             'test_total': 0
         }
-        criterion = nn.CrossEntropyLoss(ignore_index=0).to(device)
+
+        criterion = nn.CrossEntropyLoss().to(device)
 
         with torch.no_grad():
             for batch_idx, (x, target) in enumerate(test_data):
@@ -79,6 +81,3 @@ class MyModelTrainer(ModelTrainer):
                 metrics['test_loss'] += loss.item() * target.size(0)
                 metrics['test_total'] += target_pos.sum().item()
         return metrics
-
-    def test_on_the_server(self, train_data_local_dict, test_data_local_dict, device, args=None) -> bool:
-        return False

@@ -1,15 +1,15 @@
-
+import dill as pickle
 import logging
 import os
-import pickle
-
 import tqdm
 
 import torch.utils.data as data
 
 from . import utils
 from .dataset import StackOverflowDataset
-
+logging.basicConfig()
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 client_ids_train = None
 client_ids_test = None

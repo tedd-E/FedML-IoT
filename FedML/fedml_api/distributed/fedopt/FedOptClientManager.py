@@ -13,7 +13,7 @@ except ImportError:
     from FedML.fedml_core.distributed.communication.message import Message
 
 from .message_define import MyMessage
-from .utils import transform_list_to_tensor, post_complete_message_to_sweep_process
+from .utils import transform_list_to_tensor
 
 
 class FedOptClientManager(ClientManager):
@@ -61,7 +61,6 @@ class FedOptClientManager(ClientManager):
         self.round_idx += 1
         self.__train()
         if self.round_idx == self.num_rounds - 1:
-            post_complete_message_to_sweep_process(self.args)
             self.finish()
 
     def send_model_to_server(self, receive_id, weights, local_sample_num):
@@ -72,5 +71,5 @@ class FedOptClientManager(ClientManager):
 
     def __train(self):
         logging.info("#######training########### round_id = %d" % self.round_idx)
-        weights, local_sample_num = self.trainer.train(self.round_idx)
+        weights, local_sample_num = self.trainer.train()
         self.send_model_to_server(0, weights, local_sample_num)
