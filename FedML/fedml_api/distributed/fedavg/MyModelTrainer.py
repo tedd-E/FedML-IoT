@@ -70,7 +70,7 @@ class MyModelTrainer(ModelTrainer):
 
 
                     output = model(x)
-                    loss = F.nll_loss(output,label)
+                    loss = F.nll_loss(output,labels)
                     
 
 

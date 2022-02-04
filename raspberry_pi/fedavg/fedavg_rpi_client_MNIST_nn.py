@@ -147,14 +147,6 @@ if __name__ == '__main__':
     [train_data_num, test_data_num, train_data_global, test_data_global,
      train_data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num] = dataset
 
-
-    print("+++++++++++++++++++++++++")
-    print(args.batch_size)
-    print("+++++++++++++++++++++++++")
-
-
-
-
     # create model.
     # Note if the model is DNN (e.g., ResNet), the training will be very slow.
     # In this case, please use our FedML distributed version (./fedml_experiments/distributed_fedavg)
