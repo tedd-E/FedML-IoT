@@ -63,12 +63,25 @@ class FedAVGClientManager(ClientManager):
             self.finish()
 
     def send_model_to_server(self, receive_id, weights, local_sample_num):
+
+        print("++++++++++++++++++++++++++++++")
+        print("Sending Model")
+
         message = Message(MyMessage.MSG_TYPE_C2S_SEND_MODEL_TO_SERVER, self.get_sender_id(), receive_id)
         message.add_params(MyMessage.MSG_ARG_KEY_MODEL_PARAMS, weights)
         message.add_params(MyMessage.MSG_ARG_KEY_NUM_SAMPLES, local_sample_num)
         self.send_message(message)
 
+        print("Sent")
+        print("++++++++++++++++++++++++++++++")
+
     def __train(self):
+
+        print("++++++++++++++++++++++++++++++")
+        print("Round start")
+        print("++++++++++++++++++++++++++++++")
+
+
         logging.info("#######training########### round_id = %d" % self.round_idx)
         weights, local_sample_num = self.trainer.train()
         self.send_model_to_server(0, weights, local_sample_num)

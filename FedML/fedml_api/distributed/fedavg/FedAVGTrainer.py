@@ -36,6 +36,12 @@ class FedAVGTrainer(object):
         # transform Tensor to list
         if self.args.is_mobile == 1:
             weights = transform_tensor_to_list(weights)
+            
+        
+        print("++++++++++++++++++++")
+        print("round complete Sending model to server")
+        print("++++++++++++++++++++")
+            
         return weights, self.local_sample_number
 
     def test(self):
