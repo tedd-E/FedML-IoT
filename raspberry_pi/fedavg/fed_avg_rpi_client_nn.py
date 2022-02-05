@@ -23,7 +23,7 @@ from FedML.fedml_api.model.cv.mobilenet import mobilenet
 from FedML.fedml_api.model.cv.resnet import resnet56
 from FedML.fedml_api.model.linear.lr import LogisticRegression
 from FedML.fedml_api.model.nlp.rnn import RNN_OriginalFedAvg
-from FedML.fedml_api.model.nn.NN import Net
+from FedML.fedml_api.model.nn.NN import CNN_MNIST, CNN_CIFAR10
 
 
 def add_args(parser):
@@ -59,9 +59,13 @@ def register(args, uuid):
             self.partition_alpha = training_task_args['partition_alpha']
             self.model = training_task_args['model']
             self.client_num_per_round = training_task_args['client_num_per_round']
+            self.client_num_in_total = training_task_args['client_num_in_total']
+            self.data_size_per_client = training_task_args['data_size_per_client']
             self.comm_round = training_task_args['comm_round']
             self.epochs = training_task_args['epochs']
+            self.client_optimizer = training_task_args['client_optimizer']
             self.lr = training_task_args['lr']
+            self.momentum = training_task_args['momentum']
             self.wd = training_task_args['wd']
             self.batch_size = training_task_args['batch_size']
             self.frequency_of_the_test = training_task_args['frequency_of_the_test']
@@ -93,25 +97,58 @@ def load_data(args, dataset_name):
         client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
         class_num = load_partition_data_mnist(args.batch_size,
-                                              train_path="./../../FedML/data/MNIST/train",
-                                              test_path="./../../FedML/data/MNIST/test")
+                                              train_path="./../FedML/data/MNIST/train",
+                                              test_path="./../FedML/data/MNIST/test")
         """
         For shallow NN or linear models, 
         we uniformly sample a fraction of clients each round (as the original FedAvg paper)
         """
         args.client_num_in_total = client_num
+    elif dataset_name == "shakespeare":
+        logging.info("load_data. dataset_name = %s" % dataset_name)
+        client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
+        train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
+        class_num = load_partition_data_shakespeare(args.batch_size)
+        args.client_num_in_total = client_num
+    else:
+        if dataset_name == "cifar10":
+            data_loader = load_partition_data_cifar10
+        elif dataset_name == "cifar100":
+            data_loader = load_partition_data_cifar100 # Not tested
+        elif dataset_name == "cinic10":
+            data_loader = load_partition_data_cinic10 # Not tested
+        else:
+            data_loader = load_partition_data_cifar10
+
+        print("============================Starting loading cifar10==========================#")
+        train_data_num, test_data_num, train_data_global, test_data_global, \
+        train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
+        class_num = data_loader(args.dataset, args.data_dir, args.partition_method,
+                                args.partition_alpha, args.client_num_in_total, args.batch_size,
+                                args.data_size_per_client)
+        print("=================================cifar10 loaded===============================#")
 
     dataset = [train_data_num, test_data_num, train_data_global, test_data_global,
                train_data_local_num_dict, train_data_local_dict, test_data_local_dict, class_num]
     return dataset
 
-
 def create_model(args, model_name, output_dim):
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
     model = None
-    if model_name == "nn" and args.dataset == "mnist":
-        model = Net(output_dim)
+    if model_name == "lr" and args.dataset == "cifar10":
+        model = LogisticRegression(32 * 32 * 3, output_dim)    #Dim?
         args.client_optimizer = "sgd"
+    elif model_name == "rnn" and args.dataset == "shakespeare":
+        model = RNN_OriginalFedAvg(28 * 28, output_dim)
+        args.client_optimizer = "sgd"
+    elif model_name == "resnet56":
+        model = resnet56(class_num=output_dim)
+    elif model_name == "mobilenet":
+        model = mobilenet(class_num=output_dim)
+    elif model_name == "nn" and args.dataset == "mnist":
+        model = CNN_MNIST()
+    elif model_name == "nn" and args.dataset == "cifar10":
+        model = CNN_CIFAR10()
     return model
 
 
